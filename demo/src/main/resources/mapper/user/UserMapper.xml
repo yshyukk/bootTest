@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="example.demo.user.dao.UserMapper">
+	<insert id="registerUser">
+		 <selectKey resultType="String" keyProperty="userMngSn" order="BEFORE">
+	        SELECT TO_CHAR(SYSDATE, 'yyyymmddHH24MISS') || LPAD(USER_MNG_SN_SEQ.NEXTVAL, 3, '0') AS userMngSn 
+	        FROM dual
+	    </selectKey>
+		INSERT INTO TB_USER
+			(
+                user_mng_sn, 
+                user_name, 
+                birth, 
+                user_id, 
+                passwd,
+                phone_num, 
+                email, 
+                address, 
+                dtl_address, 
+                user_auth,
+                use_yn, 
+                atch_file_id, 
+                reg_user_mng_sn, 
+                inpt_dt,
+                del_yn
+            )
+            VALUES (
+                #{userMngSn}, 
+                #{userName}, 
+                #{birth}, 
+                #{userId}, 
+                #{passwd},
+                #{phoneNum}, 
+                #{email}, 
+                #{address}, 
+                #{dtlAddress}, 
+                '001',
+                'Y', 
+                #{atchFileId}, 
+                #{userMngSn}, 
+                SYSDATE,
+                'N'
+                )
+	
+	</insert>
+    <update id="updateUser" parameterType="map">
+     UPDATE TB_USER
+		SET 
+		    phone_num = #{phoneNum},
+		    email = #{email},
+		    address = #{address},
+		    dtl_address = #{dtlAddress},
+		    atch_file_id = #{atchFileId},
+		    mod_user_mng_sn = #{modUserMngSn},
+		    mod_dt = SYSDATE
+		WHERE user_mng_sn = #{userMngSn} 
+    </update>
+    
+    <select id="getUserData" parameterType="map" resultType="map">
+    	
+    	SELECT user_mng_sn, 
+               user_name, 
+               birth, 
+               user_id, 
+               passwd,
+               phone_num, 
+               email, 
+               address, 
+               dtl_address, 
+               user_auth,
+               use_yn, 
+               atch_file_id, 
+               reg_user_mng_sn, 
+               inpt_dt,
+               mod_dt,
+               mod_user_mng_sn, 
+               del_yn
+    	FROM TB_USER
+    	WHERE 1=1
+    	<if test='userMngSn != null and userMngSn != "" '>
+    		user_mgn_sn = #{userMngSn}
+    	</if>
+    	 
+    </select>
+    
+    <select id="getIdDuplicateYn" parameterType="map" resultType="map">
+    
+    	SELECT CASE 
+				WHEN chk_cnt > 0 THEN 'Y'
+				ELSE 'N'
+				END AS chkYn
+		  FROM (
+		  		SELECT COUNT(1) AS chk_cnt
+				  FROM TB_USER
+				 WHERE USER_ID = #{chkId}
+			   )
+    
+    </select>
+    
+    
+</mapper>
