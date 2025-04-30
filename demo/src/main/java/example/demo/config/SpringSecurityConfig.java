@@ -17,6 +17,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import example.demo.token.service.TokenMngService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
@@ -26,7 +27,13 @@ import lombok.RequiredArgsConstructor;
 public class SpringSecurityConfig {
 	
 		private final JwtProvider jwtProvider;
-	
+		private final TokenMngService tokenMngService;
+		
+	    @Bean
+	    public JwtAuthFilter jwtAuthFilter() {
+	        return new JwtAuthFilter(jwtProvider, tokenMngService);
+	    }
+		
 		@Bean("customSecurityFilterChain")
 	    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 	        http
@@ -46,15 +53,15 @@ public class SpringSecurityConfig {
 	                })
 	            ).sessionManagement(session -> session
 	            		.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-	            ).addFilterBefore(new JwtAuthFilter(jwtProvider),
-                        UsernamePasswordAuthenticationFilter.class);;
+	            ).addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class);
+                        
 	        return http.build();
 	    }
 
 	    @Bean
 	    public CorsConfigurationSource corsConfigurationSource() {
 	        CorsConfiguration configuration = new CorsConfiguration();
-	        configuration.setAllowedOriginPatterns(List.of("http://localhost:5173"));
+	        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
 	        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
 	        configuration.setAllowedHeaders(List.of("*"));
 	        configuration.setAllowCredentials(true);

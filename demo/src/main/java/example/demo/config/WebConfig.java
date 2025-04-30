@@ -14,6 +14,8 @@ public class WebConfig implements WebMvcConfigurer{
                 .allowedOrigins("http://localhost:5173") // React 프론트엔드 URL
                 .allowedMethods("GET", "POST", "PUT", "DELETE")
                 .allowedHeaders("*")
+                .exposedHeaders("Authorization") // ✅ 클라이언트가 읽을 수 있게 허용
                 .allowCredentials(true);
+        		
     }
 }

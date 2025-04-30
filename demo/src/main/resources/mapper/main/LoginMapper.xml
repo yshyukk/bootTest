@@ -5,12 +5,15 @@
 
 	<select id="getLoginUserChkId" parameterType="map" resultType="example.demo.main.service.LoginDto" >
 	
-		SELECT USER_ID
+		SELECT USER_MNG_SN
+			, USER_ID
 			, PASSWD
 			, USER_NAME
 			, PHONE_NUM
 			, EMAIL
 			, USER_AUTH
+			, DEL_YN
+			, USE_YN
 		FROM TB_USER
 		WHERE USER_ID = #{userId}
 		  
