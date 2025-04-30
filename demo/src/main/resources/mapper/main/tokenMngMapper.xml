@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="example.demo.token.dao.TokenMngMapper">
+
+
+		<insert id="refreshTokenCreateInfo">
+		 <selectKey resultType="String" keyProperty="refreshTokenMngSn" order="BEFORE">
+	        SELECT TO_CHAR(SYSDATE, 'yyyymmddHH24MISS') || LPAD(REFRESH_TOKEN_MNG_SN_SEQ.NEXTVAL, 3, '0') AS refreshTokenMngSn 
+	        FROM dual
+	    </selectKey>
+		INSERT INTO REFRESH_TOKENS
+			(
+                REFRESH_TOKEN_MNG_SN, 
+                USER_MNG_SN, 
+                REFRESH_TOKEN, 
+                EXPIRES_DT,
+                IS_REVOKED,
+                IP_ADDRESS,
+                USED_BROWSER, 
+                DEL_YN
+            )
+            VALUES (
+                #{refreshTokenMngSn}, 
+                #{userMngSn}, 
+                #{refreshToken},
+                #{expiresDt}, 
+                'N',
+                #{ipAddress},
+                #{usedBrowser},
+                'N'
+                )
+	
+	</insert>
+	
+	<select id="findByUserInfoIsRevokedFalseToken" parameterType="map" resultType="example.demo.main.service.LoginDto">
+		
+		SELECT *
+		FROM REFRESH_TOKENS
+		WHERE 1=1
+		<if test='userMngSn != "" and userMngSn != null'>
+		AND USER_MNG_SN = #{userMngSn}
+		</if>
+		<if test='refreshToken != "" and refreshToken != null'>
+		AND REFRESH_TOKEN = #{refreshToken}
+		</if>
+		
+	</select>
+	
+	<insert id="deleteRefreshToken" parameterType="map">
+		
+		 <selectKey resultType="String" keyProperty="refreshTokenMngSn" order="BEFORE">
+	        SELECT TO_CHAR(SYSDATE, 'yyyymmddHH24MISS') || LPAD(REFRESH_TOKEN_MNG_SN_SEQ.NEXTVAL, 3, '0') AS refreshTokenMngSn 
+	        FROM dual
+	    </selectKey>
+		INSERT INTO REFRESH_TOKENS
+			(
+                REFRESH_TOKEN_MNG_SN, 
+                USER_MNG_SN, 
+                REFRESH_TOKEN, 
+                EXPIRES_DT,
+                IS_REVOKED, 
+                REVOKED_DT,
+                IP_ADDRESS,
+                USED_BROWSER,
+                DEL_YN
+            )
+            VALUES (
+                #{refreshTokenMngSn}, 
+                #{userMngSn}, 
+                #{refreshToken},
+                #{expiresDt}, 
+                'N',
+                #{revokedDt},
+                #{ipAddress},
+                #{usedBrowser},
+                'N'
+                )
+	</insert>
+	
+</mapper>

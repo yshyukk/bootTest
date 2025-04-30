@@ -1,0 +1,143 @@
+-- user 테이블 생성
+CREATE TABLE TB_USER
+(   user_mng_sn varchar2(100)    NOT NULL,
+	user_name VARCHAR2(100)    NOT NULL,
+  	birth varchar2(100)    NOT NULL,
+	user_id   varchar2(100)    NOT NULL,
+    passwd   VARCHAR2(200) NOT NULL,
+    phone_num VARCHAR2(200) NOT NULL,
+    email   VARCHAR2(100) NOT NULL,
+    address   VARCHAR2(200) NOT NULL,
+    dtl_address   VARCHAR2(200),
+    user_auth         VARCHAR2(100)  NULL,
+    use_yn	VARCHAR2(1) DEFAULT 'Y',
+    atch_file_id VARCHAR2(200) NULL,
+    reg_user_mng_sn   varchar2(100)   NULL,
+    inpt_dt   DATE                 NULL,
+    mod_dt   DATE                 NULL,
+    mod_user_mng_sn   varchar2(100)   NULL,
+    del_yn	VARCHAR2(1)	DEFAULT 'N',
+    PRIMARY KEY (user_mng_sn)     );
+
+   
+   SELECT *
+   FROM TN_USER
+-- 파일 테이블 생성
+CREATE TABLE TB_ATCH_FILE
+(   file_id   varchar2(100)    NOT NULL,
+	file_sn VARCHAR2(3) NOT NULL,
+    file_knd_cd VARCHAR2(10)    NOT NULL,
+	org_file_nm VARCHAR2(100)    NOT NULL,
+    strg_file_nm VARCHAR2(100)    NOT NULL,
+    file_size VARCHAR2(100)    NOT NULL,
+    file_type VARCHAR2(10)    NOT NULL,
+	file_path VARCHAR2(2000)    NOT NULL,
+    inpt_dt   DATE                NOT NULL,
+    reg_user_id   varchar2(100)   NULL,
+    mod_dt   DATE                 NULL,
+    mod_user_id   varchar2(100)   NULL,
+    del_yn	VARCHAR2(1)	DEFAULT 'N',
+    PRIMARY KEY (file_id)     );
+
+   
+   
+-- 공통코드 테이블 생성
+CREATE TABLE TB_COMM_CODE
+(   code_id   varchar2(100)    NOT NULL,
+	code_nm VARCHAR2(3) NOT NULL,
+	code_desc   varchar2(100)   NULL,
+    inpt_dt   DATE              NOT NULL,
+    reg_user_id   varchar2(100) NOT NULL,
+    mod_dt   DATE               NULL,
+    mod_user_id   varchar2(100) NULL,
+    del_yn	VARCHAR2(1)	DEFAULT 'N',
+    PRIMARY KEY (code_id)     );   
+
+-- 공통코드상세 테이블 생성
+CREATE TABLE TB_COMM_CODE_DTL
+(   dtl_code_id   varchar2(100)    NOT NULL PRIMARY KEY,
+	code_id   varchar2(100)    NOT NULL,
+	dtl_code_nm VARCHAR2(3) NOT NULL,
+	dtl_code_desc VARCHAR2(3)   NULL,
+	code_desc   varchar2(100)   NULL,
+    inpt_dt   DATE              NOT NULL,
+    reg_user_id   varchar2(100) NOT NULL,
+    mod_dt   DATE               NULL,
+    mod_user_id   varchar2(100) NULL,
+    del_yn	VARCHAR2(1)	DEFAULT 'N',
+	CONSTRAINT fk_code_id FOREIGN KEY (code_id)
+	REFERENCES TB_COMM_CODE (code_id)
+);   
+
+
+-- 공통코드 상세 테이블 값 추가
+INSERT INTO TB_COMM_CODE_DTL
+(
+	dtl_code_id
+,	code_id
+,	dtl_code_nm
+,	inpt_dt
+,	reg_user_id
+)
+values(
+	'001'
+,	'FILE_KND_CD'
+,	'사용자프로필사진'
+,	SYSDATE
+,	'ADMIN'
+);
+-- USER_KEY SEQ
+CREATE SEQUENCE C##ADMIN.USER_MNG_SN_SEQ
+INCREMENT BY 1
+START WITH 1
+MINVALUE 1
+MAXVALUE 9999
+NOCACHE
+NOORDER;
+
+-- 파일테이블 seq
+CREATE SEQUENCE C##ADMIN.fileid_seq
+INCREMENT BY 1
+START WITH 1
+MINVALUE 1
+MAXVALUE 9999
+NOCACHE
+NOORDER;
+
+-- USER KEY 생성
+
+SELECT TO_CHAR(SYSDATE, 'yyyymmddHH24MISS')|| LPAD(USER_MNG_SN_SEQ.NEXTVAL,3,'0') FROM DUAL;
+
+
+-- token관리 테이블
+CREATE TABLE REFRESH_TOKENS (
+    REFRESH_TOKEN_MNG_SN VARCHAR(20) NOT NULL PRIMARY KEY,
+    USER_MNG_SN VARCHAR2(500) NOT NULL,
+    REFRESH_TOKEN CLOB NOT NULL,
+    ISSUED_DT TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    EXPIRES_DT TIMESTAMP NOT NULL,
+    IS_REVOKED CHAR(1) DEFAULT 'N' NOT NULL,
+    REVOKED_DT TIMESTAMP (6), 
+	IP_ADDRESS VARCHAR2(1000), 
+	USED_BROWSER VARCHAR2(1000), 
+    DEL_YN CHAR(1) DEFAULT 'N' NOT NULL,
+    CONSTRAINT fk_user_mng_sn FOREIGN KEY (USER_MNG_SN)
+    REFERENCES TB_USER (USER_MNG_SN)
+);
+
+
+
+-- token 관리 테이블 시퀀스
+CREATE SEQUENCE C##ADMIN.REFRESH_TOKEN_MNG_SN_SEQ
+INCREMENT BY 1
+START WITH 1
+MINVALUE 1
+MAXVALUE 9999
+NOCACHE
+NOORDER;
+
+
+-- INDEX 생성
+CREATE INDEX IDX_REFRESH_TOKEN ON REFRESH_TOKENS (USER_MNG_SN);
+
+
