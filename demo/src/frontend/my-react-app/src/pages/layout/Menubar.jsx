@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useState, useEffect } from 'react';
 import Box from '@mui/material/Box';
 import Avatar from '@mui/material/Avatar';
 import Menu from '@mui/material/Menu';
@@ -11,19 +12,67 @@ import Settings from '@mui/icons-material/Settings';
 import Logout from '@mui/icons-material/Logout';
 
 import { Link } from "react-router-dom";
+import AxiosInstance from '../../api/AxiosInstance';
+import logout from '../../api/AxiosInstance';
+import Alert from '../../components/Alert';
+import Confirm from '../../components/Confirm';
+
+
+import { useAuth } from '../../context/LoginContext'; //로그인 정보 관리 (전역)
 
 const Menubar = () => {
 
     const [anchorEl, setAnchorEl] = React.useState(null);
     const open = Boolean(anchorEl);
 
-    /*
-    const handleClick = (event) => {
-        setAnchorEl(event.currentTarget);
+    const { loginInfo, logout } = useAuth();
+
+    //Alert
+    const [alertOpen, setAlertOpen] = useState(false);
+    const [alertMsg, setAlertMsg] = useState('');
+
+    const [openConf, setOpenConf] = React.useState(false);
+
+    useEffect(() => {
+
+    }, [])
+
+
+    const openAlert = (msg) => {
+        setAlertMsg(msg);
+        setAlertOpen(true);
     };
-     */
+    const openConfirm = (e, callback) => {
+
+        if (callback) {
+
+            setConfAction(() => () => callback(e));
+        }
+        setOpenConf(true);
+
+    }
+
+    const handelConf = () => {
+        confAction(); // state에 저장된 함수 실행
+        setOpenConf(false);
+    }
+
+
+
     const handleClose = () => {
         setAnchorEl(null);
+    };
+
+    const doLogout = async (e) => {
+        try {
+            await AxiosInstance.post("/api/logout"); // 로그아웃 API 호출
+            logout(); //context에 logout호출
+
+            window.location.href = "/loginForm";
+        } catch (error) {
+            console.error("로그아웃 실패", error);
+            openAlert("로그아웃 중 오류가 발생했습니다.");
+        }
     };
 
     return (
@@ -43,9 +92,23 @@ const Menubar = () => {
                     <Typography sx={{ minWidth: 100 }}>Board</Typography>
                 </Link>
 
-                <Link to="/LoginForm" style={{ textDecoration: 'none', color: 'inherit' }}>
-                    <Typography sx={{ minWidth: 100 }}>Login</Typography>
-                </Link>
+                {loginInfo ? (
+                    <Box onClick={doLogout} sx={{ cursor: "pointer" }}>
+                        <Typography sx={{ minWidth: 100 }}>Logout</Typography>
+                    </Box>
+                ) : (
+                    <Link to="/LoginForm" style={{ textDecoration: 'none', color: 'inherit' }}>
+                        <Typography sx={{ minWidth: 100 }}>Login</Typography>
+                    </Link>
+                )}
+
+
+
+                {/**
+                 * 로그인 후처리 작업 필요
+                 * 
+                 * 
+                */}
 
                 {/**
                 <Typography sx={{ minWidth: 100 }}>Profile</Typography>
@@ -127,6 +190,18 @@ const Menubar = () => {
                     Logout
                 </MenuItem>
             </Menu>
+
+            <Alert
+                open={alertOpen}
+                message={alertMsg}
+                onClose={() => setAlertOpen(false)}
+            />
+            <Confirm
+                open={openConf}
+                onClose={() => setOpenConf(false)}
+                onConfirm={handelConf}
+            />
+
         </React.Fragment>
     );
 }

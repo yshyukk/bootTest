@@ -1,4 +1,5 @@
-import * as React from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     Box,
     FormControl,
@@ -9,15 +10,30 @@ import {
 } from '@mui/material';
 import Stack from '@mui/material/Stack';
 import AxiosInstance from '../../api/AxiosInstance';
+import Confirm from '../../components/Confirm';
+import Alert from '../../components/Alert';
+import { Link } from "react-router-dom";
+import { useAuth } from '../../context/LoginContext';
 
 const LoginForm = () => {
     /*******************State*******************/
+    const { login } = useAuth();
+
     //입력한 회원정보
     const [loginUserData, setLoginUserData] = React.useState({
         "userId": "",
-        "passwd": ""
+        "userName": ""
     });
 
+    const navigate = useNavigate();
+
+    const [openConf, setOpenConf] = React.useState(false);
+    //confrim 확인 후 callback함수
+    const [confAction, setConfAction] = React.useState(() => () => { });
+
+    //Alert
+    const [alertOpen, setAlertOpen] = useState(false);
+    const [alertMsg, setAlertMsg] = useState('');
 
     /******************Communicate****************/
     const doLogin = (e) => {
@@ -31,17 +47,60 @@ const LoginForm = () => {
             */
             let loginUserParam = JSON.parse(JSON.stringify(loginUserData));
 
-            AxiosInstance.post('/api/doLogin', loginUserParam)
+            AxiosInstance.post('/api/doLogin', loginUserParam, {
+
+            })
                 .then((res) => {
                     console.log(res);
-                }
+                    //로그인 성공 -> 토큰을 localStorage에 저장
 
-                );
+                    let loginUserInfo = res.data;
+
+                    localStorage.setItem("userInfo", JSON.stringify(loginUserInfo));
+
+                    //context에 로그인 정보 저장
+                    login(loginUserInfo);
+
+                    //메인 페이지로 리다이렉션
+                    navigate("/");
+                })
+                .catch((err) => {
+
+                    if (err.response && err.response.data && err.response.status == "401") {
+                        openAlert(err.response.data.errorMsg);
+                        return;
+                    }
+                });
 
         } else {
             openAlert("id를 입력해주세요");
         }
     }
+    /***************** Comm Fucntion *****************/
+
+    const openAlert = (msg) => {
+        setAlertMsg(msg);
+        setAlertOpen(true);
+    };
+
+    const openConfirm = (e, callback) => {
+
+        const cpSaveParam = { ...formData };
+        //필수값 체크
+        if (chkReqValidForm(e, cpSaveParam, userForm) === false) {
+            return;
+        }
+
+        setConfAction(() => () => callback(e));
+        setOpenConf(true);
+
+    }
+
+    const handelConf = () => {
+        confAction(); // state에 저장된 함수 실행
+        setOpenConf(false);
+    }
+
 
     /********************FUNCTION*******************************/
 
@@ -101,6 +160,18 @@ const LoginForm = () => {
                 </FormControl>
 
             </Stack>
+
+
+            <Confirm
+                open={openConf}
+                onClose={() => setOpenConf(false)}
+                onConfirm={handelConf}
+            />
+            <Alert
+                open={alertOpen}
+                message={alertMsg}
+                onClose={() => setAlertOpen(false)}
+            />
 
         </Box>
     )
